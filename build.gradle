@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group 'de.ytendx'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+}
+
+shadowJar {
+}
+tasks.assemble.dependsOn tasks.shadowJar
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    compileOnly 'org.bukkit:bukkit:1.8-R0.1-SNAPSHOT'
+    implementation 'io.netty:netty-codec-haproxy:4.1.0.CR3'
+    // https://mvnrepository.com/artifact/io.netty/netty-codec
+}
+
+test {
+    useJUnitPlatform()
+}

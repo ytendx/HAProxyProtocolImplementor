@@ -1,0 +1,14 @@
+name: HAProxyImplementor
+author: ytendx
+version: 1.1.1
+main: de.ytendx.haproxy.HAProxySpigotImplementor
+website: https://neoprotect.net/
+description: Allows the usage of ip forwarding via the HAProxy Protocol v2/v1
+commands:
+  haproxyimplementor:
+    description: Shows information about the plugin
+    usage: /haproxyimplementor
+    aliases:
+      - haproxy
+      - proxyimplementor
+      - proxyprotocol
