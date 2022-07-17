@@ -6,4 +6,6 @@ given ips.
 
 Also checkout **[NeoProtect](https://neoprotect.net/)** where you are able to use this plugin with.
 
+Download: https://www.spigotmc.org/resources/haproxy-protocol-implementor.103193/
+
 Have fun with it :)
