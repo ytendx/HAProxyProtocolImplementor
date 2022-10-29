@@ -1,6 +1,6 @@
 name: HAProxyImplementor
 author: ytendx
-version: 1.1.1
+version: 1.1.2
 api-version: 1.13
 main: de.ytendx.haproxy.HAProxySpigotImplementor
 website: https://neoprotect.net/
