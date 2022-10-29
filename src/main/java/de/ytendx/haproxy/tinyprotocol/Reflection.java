@@ -73,9 +73,9 @@ public final class Reflection {
 	}
 
 	// Deduce the net.minecraft.server.v* package
-	private static String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
-	private static String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-	private static String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
+	public static String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
+	public static String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
+	public static String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
 
 	// Variable replacement
 	private static Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
@@ -366,13 +366,17 @@ public final class Reflection {
 		}
 	}
 
+	public static boolean isNewerPackage(){
+		return VERSION.contains("17") || VERSION.contains("18") || VERSION.contains("19") || VERSION.contains("20");
+	}
+
 	/**
 	 * Expand variables such as "{nms}" and "{obc}" to their corresponding packages.
 	 * 
 	 * @param name - the full name of the class.
 	 * @return The expanded string.
 	 */
-	private static String expandVariables(String name) {
+	public static String expandVariables(String name) {
 		StringBuffer output = new StringBuffer();
 		Matcher matcher = MATCH_VARIABLE.matcher(name);
 
@@ -382,7 +386,7 @@ public final class Reflection {
 
 			// Expand all detected variables
 			if ("nms".equalsIgnoreCase(variable))
-				replacement = NMS_PREFIX;
+				replacement = isNewerPackage() ? "net.minecraft.server" : NMS_PREFIX;
 			else if ("obc".equalsIgnoreCase(variable))
 				replacement = OBC_PREFIX;
 			else if ("version".equalsIgnoreCase(variable))

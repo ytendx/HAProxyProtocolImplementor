@@ -4,6 +4,7 @@ import io.netty.channel.*;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.sql.Ref;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -26,12 +27,18 @@ public class TinyProtocol {
 
 	// Looking up ServerConnection
 	private static final Class<Object> minecraftServerClass = Reflection.getUntypedClass("{nms}.MinecraftServer");
-	private static final Class<Object> serverConnectionClass = Reflection.getUntypedClass("{nms}.ServerConnection");
+	private static final Class<Object> serverConnectionClass = Reflection.getUntypedClass("{nms}" + (Reflection.isNewerPackage() ? ".network" : "") + ".ServerConnection");
 	private static final Reflection.FieldAccessor<Object> getMinecraftServer = Reflection.getField("{obc}.CraftServer", minecraftServerClass, 0);
 	private static final Reflection.FieldAccessor<Object> getServerConnection = Reflection.getField(minecraftServerClass, serverConnectionClass, 0);
-	private static final Reflection.MethodInvoker getNetworkMarkers = Reflection.getTypedMethod(serverConnectionClass, null, List.class, serverConnectionClass);
+	private static final Reflection.MethodInvoker getNetworkMarkers;
+	private static final Reflection.FieldAccessor<List> networkManagersFieldAccessor;
 
-	private static final Class<Object> networkManager = Reflection.getUntypedClass("{nms}.NetworkManager");
+	static {
+		getNetworkMarkers = !Reflection.isNewerPackage() ? Reflection.getTypedMethod(serverConnectionClass, null, List.class, serverConnectionClass) : null;
+		networkManagersFieldAccessor = Reflection.isNewerPackage() ? Reflection.getField(serverConnectionClass, List.class, 0) : null;
+	}
+
+	private static final Class<Object> networkManager = Reflection.getUntypedClass(Reflection.isNewerPackage() ? "net.minecraft.network.NetworkManager" : "{nms}.NetworkManager");
 	private static final Reflection.FieldAccessor<SocketAddress> socketAddressFieldAccessor = Reflection.getField(networkManager, SocketAddress.class, 0);
 	// List of network markers
 	private List<Object> networkManagers;
@@ -128,7 +135,7 @@ public class TinyProtocol {
 		boolean looking = true;
 
 		// We need to synchronize against this list
-		networkManagers = (List<Object>) getNetworkMarkers.invoke(null, serverConnection);
+		networkManagers = Reflection.isNewerPackage() ? networkManagersFieldAccessor.get(serverConnection) : (List<Object>) getNetworkMarkers.invoke(null, serverConnection);
 		createServerChannelHandler();
 
 		// Find the correct list, or implicitly throw an exception

@@ -1,6 +1,7 @@
 name: HAProxyImplementor
 author: ytendx
 version: 1.1.1
+api-version: 1.13
 main: de.ytendx.haproxy.HAProxySpigotImplementor
 website: https://neoprotect.net/
 description: Allows the usage of ip forwarding via the HAProxy Protocol v2/v1
