@@ -1,13 +1,17 @@
 package de.ytendx.haproxy.tinyprotocol;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.sql.Ref;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import org.bukkit.Bukkit;
@@ -92,13 +96,27 @@ public class TinyProtocol {
 
 			@Override
 			protected void initChannel(Channel channel) throws Exception {
+				System.out.println("END INIT");
 				try {
+					if (Reflection.isNewerPackage()){
+						System.out.println("NEWER");
+						synchronized (networkManagers) {
+							// Adding the decoder to the pipeline
+							System.out.println("SYMCED");
+							channel.pipeline().addFirst("lul", new Debugger());
+							channel.pipeline().addFirst("haproxy-decoder", new HAProxyMessageDecoder());
+							// Adding the proxy message handler to the pipeline too
+							channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
+						}
+						return;
+					}
+
 					// Adding the decoder to the pipeline
 					channel.pipeline().addAfter("timeout", "haproxy-decoder", new HAProxyMessageDecoder());
 					// Adding the proxy message handler to the pipeline too
 					channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
 				} catch (Exception e) {
-					plugin.getLogger().log(Level.SEVERE, "Cannot inject incomming channel " + channel, e);
+					plugin.getLogger().log(Level.SEVERE, "Cannot inject incoming channel " + channel, e);
 				}
 			}
 
@@ -109,6 +127,7 @@ public class TinyProtocol {
 
 			@Override
 			protected void initChannel(Channel channel) throws Exception {
+				System.out.println("BEGIN INIT");
 				channel.pipeline().addLast(endInitProtocol);
 			}
 
@@ -119,6 +138,8 @@ public class TinyProtocol {
 			@Override
 			public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 				Channel channel = (Channel) msg;
+
+				System.out.println("HANDLE");
 
 				// Prepare to initialize ths channel
 				channel.pipeline().addFirst(beginInitProtocol);
@@ -167,6 +188,14 @@ public class TinyProtocol {
 	 */
 	protected String getHandlerName() {
 		return "haproxy-implementor-tiny-" + plugin.getName() + "-" + ID.incrementAndGet();
+	}
+
+	public static class Debugger extends ByteToMessageDecoder {
+		@Override
+		protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+			System.out.println("PACKET!!!!");
+			out.add(in);
+		}
 	}
 
 	private final HAProxyMessageHandler HAPROXY_MESSAGE_HANDLER = new HAProxyMessageHandler();

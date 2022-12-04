@@ -367,6 +367,7 @@ public final class Reflection {
 	}
 
 	public static boolean isNewerPackage(){
+		System.out.println(VERSION + " | " + Reflection.NMS_PREFIX + " | " + OBC_PREFIX);
 		return VERSION.contains("17") || VERSION.contains("18") || VERSION.contains("19") || VERSION.contains("20");
 	}
 
