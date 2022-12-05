@@ -1,5 +1,6 @@
 package de.ytendx.haproxy.tinyprotocol;
 
+import de.ytendx.haproxy.HAProxySpigotImplementor;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 
@@ -27,7 +28,6 @@ import com.google.common.collect.Lists;
  * @author Kristian // Love ya <3 ~ytendx
  */
 public class TinyProtocol {
-	private static final AtomicInteger ID = new AtomicInteger(0);
 
 	// Looking up ServerConnection
 	private static final Class<Object> minecraftServerClass = Reflection.getUntypedClass("{nms}.MinecraftServer");
@@ -53,10 +53,6 @@ public class TinyProtocol {
 	private ChannelInitializer<Channel> beginInitProtocol;
 	private ChannelInitializer<Channel> endInitProtocol;
 
-	// Current handler name
-	private String handlerName;
-
-	protected volatile boolean closed;
 	protected Plugin plugin;
 
 	/**
@@ -69,9 +65,7 @@ public class TinyProtocol {
 	public TinyProtocol(final Plugin plugin) {
 		this.plugin = plugin;
 
-		// Compute handler name
-		this.handlerName = getHandlerName();
-
+		plugin.getLogger().info(Reflection.isNewerPackage() + " | " + Reflection.NMS_PREFIX);
 
 		try {
 			plugin.getLogger().info("Proceeding with the server channel injection...");
@@ -96,14 +90,10 @@ public class TinyProtocol {
 
 			@Override
 			protected void initChannel(Channel channel) throws Exception {
-				System.out.println("END INIT");
 				try {
 					if (Reflection.isNewerPackage()){
-						System.out.println("NEWER");
 						synchronized (networkManagers) {
 							// Adding the decoder to the pipeline
-							System.out.println("SYMCED");
-							channel.pipeline().addFirst("lul", new Debugger());
 							channel.pipeline().addFirst("haproxy-decoder", new HAProxyMessageDecoder());
 							// Adding the proxy message handler to the pipeline too
 							channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
@@ -127,7 +117,6 @@ public class TinyProtocol {
 
 			@Override
 			protected void initChannel(Channel channel) throws Exception {
-				System.out.println("BEGIN INIT");
 				channel.pipeline().addLast(endInitProtocol);
 			}
 
@@ -138,8 +127,6 @@ public class TinyProtocol {
 			@Override
 			public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 				Channel channel = (Channel) msg;
-
-				System.out.println("HANDLE");
 
 				// Prepare to initialize ths channel
 				channel.pipeline().addFirst(beginInitProtocol);
@@ -176,25 +163,6 @@ public class TinyProtocol {
 
 				plugin.getLogger().info("Found the server channel and added the handler. Injection successfully!");
 			}
-		}
-	}
-
-	/**
-	 * Retrieve the name of the channel injector, default implementation is "tiny-" + plugin name + "-" + a unique ID.
-	 * <p>
-	 * Note that this method will only be invoked once. It is no longer necessary to override this to support multiple instances.
-	 * 
-	 * @return A unique channel handler name.
-	 */
-	protected String getHandlerName() {
-		return "haproxy-implementor-tiny-" + plugin.getName() + "-" + ID.incrementAndGet();
-	}
-
-	public static class Debugger extends ByteToMessageDecoder {
-		@Override
-		protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-			System.out.println("PACKET!!!!");
-			out.add(in);
 		}
 	}
 
