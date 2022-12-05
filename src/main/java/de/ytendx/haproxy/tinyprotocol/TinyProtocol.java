@@ -1,13 +1,18 @@
 package de.ytendx.haproxy.tinyprotocol;
 
+import de.ytendx.haproxy.HAProxySpigotImplementor;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.sql.Ref;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import org.bukkit.Bukkit;
@@ -23,7 +28,6 @@ import com.google.common.collect.Lists;
  * @author Kristian // Love ya <3 ~ytendx
  */
 public class TinyProtocol {
-	private static final AtomicInteger ID = new AtomicInteger(0);
 
 	// Looking up ServerConnection
 	private static final Class<Object> minecraftServerClass = Reflection.getUntypedClass("{nms}.MinecraftServer");
@@ -49,10 +53,6 @@ public class TinyProtocol {
 	private ChannelInitializer<Channel> beginInitProtocol;
 	private ChannelInitializer<Channel> endInitProtocol;
 
-	// Current handler name
-	private String handlerName;
-
-	protected volatile boolean closed;
 	protected Plugin plugin;
 
 	/**
@@ -65,9 +65,7 @@ public class TinyProtocol {
 	public TinyProtocol(final Plugin plugin) {
 		this.plugin = plugin;
 
-		// Compute handler name
-		this.handlerName = getHandlerName();
-
+		plugin.getLogger().info(Reflection.isNewerPackage() + " | " + Reflection.NMS_PREFIX);
 
 		try {
 			plugin.getLogger().info("Proceeding with the server channel injection...");
@@ -93,12 +91,22 @@ public class TinyProtocol {
 			@Override
 			protected void initChannel(Channel channel) throws Exception {
 				try {
+					if (Reflection.isNewerPackage()){
+						synchronized (networkManagers) {
+							// Adding the decoder to the pipeline
+							channel.pipeline().addFirst("haproxy-decoder", new HAProxyMessageDecoder());
+							// Adding the proxy message handler to the pipeline too
+							channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
+						}
+						return;
+					}
+
 					// Adding the decoder to the pipeline
 					channel.pipeline().addAfter("timeout", "haproxy-decoder", new HAProxyMessageDecoder());
 					// Adding the proxy message handler to the pipeline too
 					channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
 				} catch (Exception e) {
-					plugin.getLogger().log(Level.SEVERE, "Cannot inject incomming channel " + channel, e);
+					plugin.getLogger().log(Level.SEVERE, "Cannot inject incoming channel " + channel, e);
 				}
 			}
 
@@ -156,17 +164,6 @@ public class TinyProtocol {
 				plugin.getLogger().info("Found the server channel and added the handler. Injection successfully!");
 			}
 		}
-	}
-
-	/**
-	 * Retrieve the name of the channel injector, default implementation is "tiny-" + plugin name + "-" + a unique ID.
-	 * <p>
-	 * Note that this method will only be invoked once. It is no longer necessary to override this to support multiple instances.
-	 * 
-	 * @return A unique channel handler name.
-	 */
-	protected String getHandlerName() {
-		return "haproxy-implementor-tiny-" + plugin.getName() + "-" + ID.incrementAndGet();
 	}
 
 	private final HAProxyMessageHandler HAPROXY_MESSAGE_HANDLER = new HAProxyMessageHandler();

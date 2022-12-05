@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import de.ytendx.haproxy.HAProxySpigotImplementor;
 import org.bukkit.Bukkit;
 
 /**
@@ -75,7 +77,10 @@ public final class Reflection {
 	// Deduce the net.minecraft.server.v* package
 	public static String OBC_PREFIX = Bukkit.getServer().getClass().getPackage().getName();
 	public static String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
-	public static String NMS_PREFIX = OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server");
+	public static String NMS_PREFIX = (Reflection.isNewerPackage() ?
+			OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server").replace(VERSION, "") :
+			OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server"))
+			;
 
 	// Variable replacement
 	private static Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
@@ -367,6 +372,7 @@ public final class Reflection {
 	}
 
 	public static boolean isNewerPackage(){
+		HAProxySpigotImplementor.getPlugin(HAProxySpigotImplementor.class).getLogger().info(VERSION + " | " + Reflection.NMS_PREFIX + " | " + OBC_PREFIX);
 		return VERSION.contains("17") || VERSION.contains("18") || VERSION.contains("19") || VERSION.contains("20");
 	}
 
