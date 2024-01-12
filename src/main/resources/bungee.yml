@@ -1,0 +1,6 @@
+name: HAProxyImplementor
+author: ytendx
+version: 1.1.3
+main: de.ytendx.haproxy.HAProxyBungeeImplementor
+website: https://neoprotect.net/
+description: Allows the usage of ip forwarding via the HAProxy Protocol v2/v1

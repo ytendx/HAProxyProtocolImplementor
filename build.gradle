@@ -9,6 +9,10 @@ version '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
     maven {
+        name = 'bungee-repo'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+    maven {
         name = 'spigotmc-repo'
         url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
     }
@@ -22,6 +26,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     compileOnly 'org.bukkit:bukkit:1.8-R0.1-SNAPSHOT'
+    compileOnly("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
     implementation 'io.netty:netty-codec-haproxy:4.1.0.CR3'
     // https://mvnrepository.com/artifact/io.netty/netty-codec
 }
