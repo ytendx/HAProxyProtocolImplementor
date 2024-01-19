@@ -1,25 +1,18 @@
 package de.ytendx.haproxy.tinyprotocol;
 
-import de.ytendx.haproxy.HAProxySpigotImplementor;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.sql.Ref;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
-import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.google.common.collect.Lists;
 /**
  * Represents a very tiny alternative to ProtocolLib.
  * <p>
@@ -47,8 +40,6 @@ public class TinyProtocol {
 	// List of network markers
 	private List<Object> networkManagers;
 
-	// Injected channel handlers
-	private List<Channel> serverChannels = Lists.newArrayList();
 	private ChannelInboundHandlerAdapter serverChannelHandler;
 	private ChannelInitializer<Channel> beginInitProtocol;
 	private ChannelInitializer<Channel> endInitProtocol;
@@ -86,25 +77,17 @@ public class TinyProtocol {
 
 	private void createServerChannelHandler() {
 		// Handle connected channels
-		endInitProtocol = new ChannelInitializer<Channel>() {
+		endInitProtocol = new ChannelInitializer<>() {
 
 			@Override
-			protected void initChannel(Channel channel) throws Exception {
+			protected void initChannel(Channel channel) {
 				try {
-					if (Reflection.isNewerPackage()){
-						synchronized (networkManagers) {
-							// Adding the decoder to the pipeline
-							channel.pipeline().addFirst("haproxy-decoder", new HAProxyMessageDecoder());
-							// Adding the proxy message handler to the pipeline too
-							channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
-						}
-						return;
+					synchronized (networkManagers) {
+						// Adding the decoder to the pipeline
+						channel.pipeline().addFirst("haproxy-decoder", new HAProxyMessageDecoder());
+						// Adding the proxy message handler to the pipeline too
+						channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
 					}
-
-					// Adding the decoder to the pipeline
-					channel.pipeline().addAfter("timeout", "haproxy-decoder", new HAProxyMessageDecoder());
-					// Adding the proxy message handler to the pipeline too
-					channel.pipeline().addAfter("haproxy-decoder", "haproxy-handler", HAPROXY_MESSAGE_HANDLER);
 				} catch (Exception e) {
 					plugin.getLogger().log(Level.SEVERE, "Cannot inject incoming channel " + channel, e);
 				}
@@ -113,10 +96,10 @@ public class TinyProtocol {
 		};
 
 		// This is executed before Minecraft's channel handler
-		beginInitProtocol = new ChannelInitializer<Channel>() {
+		beginInitProtocol = new ChannelInitializer<>() {
 
 			@Override
-			protected void initChannel(Channel channel) throws Exception {
+			protected void initChannel(Channel channel) {
 				channel.pipeline().addLast(endInitProtocol);
 			}
 
@@ -125,7 +108,7 @@ public class TinyProtocol {
 		serverChannelHandler = new ChannelInboundHandlerAdapter() {
 	
 			@Override
-			public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+			public void channelRead(ChannelHandlerContext ctx, Object msg) {
 				Channel channel = (Channel) msg;
 
 				// Prepare to initialize ths channel
@@ -151,13 +134,12 @@ public class TinyProtocol {
 			List<Object> list = Reflection.getField(serverConnection.getClass(), List.class, i).get(serverConnection);
 
 			for (Object item : list) {
-				if (!ChannelFuture.class.isInstance(item))
+				if (!(item instanceof ChannelFuture))
 					break;
 
 				// Channel future that contains the server connection
 				Channel serverChannel = ((ChannelFuture) item).channel();
 
-				serverChannels.add(serverChannel);
 				serverChannel.pipeline().addFirst(serverChannelHandler);
 				looking = false;
 
@@ -191,5 +173,5 @@ public class TinyProtocol {
 				exception.printStackTrace();
 			}
 		}
-	};
+	}
 }
