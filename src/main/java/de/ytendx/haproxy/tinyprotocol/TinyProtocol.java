@@ -7,6 +7,7 @@ import io.netty.channel.*;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.sql.Ref;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,11 +35,9 @@ public class TinyProtocol {
 	private static final Class<Object> serverConnectionClass = Reflection.getUntypedClass("{nms}" + (Reflection.isNewerPackage() ? ".network" : "") + ".ServerConnection");
 	private static final Reflection.FieldAccessor<Object> getMinecraftServer = Reflection.getField("{obc}.CraftServer", minecraftServerClass, 0);
 	private static final Reflection.FieldAccessor<Object> getServerConnection = Reflection.getField(minecraftServerClass, serverConnectionClass, 0);
-	private static final Reflection.MethodInvoker getNetworkMarkers;
 	private static final Reflection.FieldAccessor<List> networkManagersFieldAccessor;
 
 	static {
-		getNetworkMarkers = !Reflection.isNewerPackage() ? Reflection.getTypedMethod(serverConnectionClass, null, List.class, serverConnectionClass) : null;
 		networkManagersFieldAccessor = Reflection.isNewerPackage() ? Reflection.getField(serverConnectionClass, List.class, 0) : null;
 	}
 
@@ -143,7 +142,7 @@ public class TinyProtocol {
 		boolean looking = true;
 
 		// We need to synchronize against this list
-		networkManagers = Reflection.isNewerPackage() ? networkManagersFieldAccessor.get(serverConnection) : (List<Object>) getNetworkMarkers.invoke(null, serverConnection);
+		networkManagers = Reflection.isNewerPackage() ? networkManagersFieldAccessor.get(serverConnection) : new ArrayList<>();
 		createServerChannelHandler();
 
 		// Find the correct list, or implicitly throw an exception
