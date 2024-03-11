@@ -79,8 +79,7 @@ public final class Reflection {
 	public static String VERSION = OBC_PREFIX.replace("org.bukkit.craftbukkit", "").replace(".", "");
 	public static String NMS_PREFIX = (Reflection.isNewerPackage() ?
 			OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server").replace(VERSION, "") :
-			OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server"))
-			;
+			OBC_PREFIX.replace("org.bukkit.craftbukkit", "net.minecraft.server"));
 
 	// Variable replacement
 	private static Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
