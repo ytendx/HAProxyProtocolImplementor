@@ -63,8 +63,8 @@ public class TinyProtocol {
 	 */
 	public TinyProtocol(final Plugin plugin) {
 		this.plugin = plugin;
-
-		plugin.getLogger().info(Reflection.isNewerPackage() + " | " + Reflection.NMS_PREFIX);
+		
+		//Useless logging -> plugin.getLogger().info(Reflection.isNewerPackage() + " | " + Reflection.NMS_PREFIX);
 
 		try {
 			plugin.getLogger().info("Proceeding with the server channel injection...");
